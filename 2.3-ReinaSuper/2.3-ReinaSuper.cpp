@@ -1,7 +1,7 @@
 
 /*@ <authors>
  *
- * MARP57 
+ * MARP57
  *
  *@ </authors> */
 
@@ -24,44 +24,42 @@ using namespace std;
  // ================================================================
  //@ <answer>
 
-struct registro {
-    int turno;
-    int64_t id;
-    int periodo;
+struct caja {
+    int id; //Numero de la caja
+    int tiempo; //Tiempo de espera
 };
 
-bool operator<(registro const& a, registro const& b) {
-    return b.turno < a.turno || (a.turno == b.turno && b.id < a.id);
+bool operator<(caja const& a, caja const& b) {
+    return b.tiempo < a.tiempo || (b.tiempo == a.tiempo && b.id < a.id);
 }
 
 bool resuelveCaso() {
 
     // leer los datos de la entrada
-    int num_usuarios;
-    cin >> num_usuarios;
-    if (num_usuarios == 0)
+    int N, C;
+    cin >> N >> C;
+    if (N==0 && C == 0)
         return false;
 
-    priority_queue<registro> cola;
-
-    for (int i = 0; i < num_usuarios; ++i) {
-        int id, periodo;
-        cin >> id >> periodo;
-        cola.push({ periodo, id, periodo }); //Se añade periodo como su turno porque será dentro de su periodo de tiempo desde el actual
+    priority_queue<caja> cajas;
+    
+    for (int i = 1; i <= N; ++i) { //O(N*logN)
+        //Todas las cajas comienzan con tiempo de espera 0
+        cajas.push({ i, 0 }); //O(log(N))
     }
 
-    int num_envios;
-    cin >> num_envios;
+    for (int i = 0; i < C; ++i) { //O(C*logN)
+        int t_C;
+        cin >> t_C;
 
-    while (num_envios > 0) { //O(num_envios * log(num_usuarios))
-        auto actual = cola.top(); cola.pop();
-        cout << actual.id << "\n";
-        actual.turno += actual.periodo;
-        cola.push(actual); //O(log(num_usuarios))
-        num_envios--;
+        auto caja = cajas.top(); 
+        cajas.pop(); //O(logN)
+        caja.tiempo += t_C;
+        cajas.push(caja); //O(logN)
     }
-    cout << "---\n";
-    // escribir la solución
+
+    auto cajaIsmael = cajas.top();
+    cout << cajaIsmael.id << '\n';
 
     return true;
 }
