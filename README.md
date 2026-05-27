@@ -4,8 +4,8 @@
 
 | Práctica |  Teoría  |  Tema |  
 |:-:|:-:|---|
-| - | - | Árboles de búsqueda avanzados |
-| - | - | Colas de Prioridad y Montículos |
+| ✔️ | - | Árboles de búsqueda avanzados |
+| ✔️ | - | Colas de Prioridad y Montículos |
 | - | - | Heapsort y Colas de Prioridad Variable |
 | - | - | Grafos no dirigidos |
 | - | - | Grafos dirigidos |
