@@ -125,6 +125,9 @@
   <ItemGroup>
     <ClCompile Include="5.L-NecronomiconInformatica.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Digrafo.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
