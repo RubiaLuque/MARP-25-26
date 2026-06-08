@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <deque>
+#include <cstdint>
 using namespace std;
 
 #include "DigrafoValorado.h"  // propios o los de las estructuras de datos de clase
@@ -28,7 +29,7 @@ using namespace std;
 
 class Djkstra {
 private:
-    const int INF = std::numeric_limits<int>::max();
+    const int INF = INT32_MAX;
     int origen;
     vector<int> dist;
     vector<AristaDirigida<int>> ulti;
@@ -43,6 +44,7 @@ private:
         if (dist[w] > dist[v] + a.valor()) {
             dist[w] = dist[v] + a.valor();
             pq.update(w, dist[w]);
+            ulti[w] = a;
         }
     }
 
@@ -71,7 +73,8 @@ public:
     }
 
     deque<AristaDirigida<int>> camino(int v) const {
-        deque<AristaDirigida<int>> cam; 
+        deque<AristaDirigida<int>> cam;
+
         //Se retrocede para recuperar el camino
         AristaDirigida<int> a;
 
@@ -88,7 +91,7 @@ bool resuelveCaso() {
 
     // leer los datos de la entrada
     int N, C; //num vertices, num calles
-    cin >> N >> C;
+    std::cin >> N >> C;
     if (!std::cin)  // fin de la entrada
         return false;
 
@@ -96,30 +99,33 @@ bool resuelveCaso() {
     int v, w, valor;
 
     for (int i = 0; i < C; ++i) {
-        cin >> v >> w >> valor;
+        std::cin >> v >> w >> valor;
         //todas las calles son de doble sentido
         g.ponArista({ v - 1, w - 1, valor });
         g.ponArista({ w - 1, v - 1, valor });
     }
 
     int K, orig, dest;
-    cin >> K;
+    std::cin >> K;
+    //O(K*AlogV) siendo K el numero de pedidos, A numero de aristas y V numero de vertices que tiene el grafo g
     for (int i = 0; i < K; ++i) {
-        cin >> orig >> dest;
+        std::cin >> orig >> dest;
         Djkstra dj(g, orig - 1);
         if (!dj.hayCamino(dest - 1)) cout << "NO LLEGA\n";
         else {
             cout << dj.distancia(dest - 1) << ": ";
             deque<AristaDirigida<int>> d = dj.camino(dest - 1);
 
-            for (int i = 0; i < d.size(); ++i) {
-                cout << d.front().desde() << " -> ";
+            while (!d.empty()) {
+                cout << d.front().desde() + 1 << " -> ";
                 d.pop_front();
             }
 
-            cout << dest - 1 << '\n';
+            cout << dest << '\n';
         }
     }
+
+    cout << "---\n";
     // resolver el caso posiblemente llamando a otras funciones
 
     // escribir la solución
@@ -136,14 +142,14 @@ int main() {
     ifstream in("casos.txt");
     if (!in.is_open())
         cout << "Error: no se ha podido abrir el archivo de entrada." << std::endl;
-    auto cinbuf = cin.rdbuf(in.rdbuf());
+    auto cinbuf = std::cin.rdbuf(in.rdbuf());
 #endif
 
     while (resuelveCaso());
 
     // para dejar todo como estaba al principio
 #ifndef DOMJUDGE
-    cin.rdbuf(cinbuf);
+    std::cin.rdbuf(cinbuf);
 #endif
     return 0;
 }
