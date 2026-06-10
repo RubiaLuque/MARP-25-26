@@ -57,7 +57,7 @@ public:
 
                 if (a.valor() >= costeAero) { //Se maximiza el numero de aeropuertos
                     numAeros++;
-                    costeMin += costeAero;
+                    //costeMin += costeAero;
                 }
                 else {
                     costeMin += a.valor();
