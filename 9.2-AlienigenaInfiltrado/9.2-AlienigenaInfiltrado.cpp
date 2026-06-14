@@ -31,6 +31,7 @@ struct Intervalo {
 
 int64_t minTrabajos(vector<Intervalo> const& trabajos, int64_t C, int64_t F) {
     if (trabajos.size() == 0) return -1; //Devolver -1 significa que es imposible
+
     Intervalo zonaCubierta = { C, C }; //La zona que tenemos cubierta inicialmente es un intervalo vacio
 
     int64_t finMejorIntervalo = C; //dentro de la zona cubierta, hasta donde se buscan intervalos mejores

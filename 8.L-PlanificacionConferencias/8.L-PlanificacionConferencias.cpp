@@ -8,16 +8,19 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <deque>
-#include <unordered_map>
+#include <queue>
 #include <algorithm>
+#include "IndexPQ.h"
+
 using namespace std;
+
 
 /*@ <answer>
 
- Escribe aquí un comentario general sobre la solución, explicando cómo
- se resuelve el problema y cuál es el coste de la solución, en función
- del tamaño del problema.
+ Coste de O(NlogN) por la ordenacion del vector de conferencias y el bucle for donde se usa una cola de prioridad
+ con insercion y delecion en coste O(logN) que se hace N veces. 
+
+ Coste total en tiempo de O(NlogN) y O(N) en espacio adicional por la cola de prioridad y el vector cNumSala.
 
  @ </answer> */
 
@@ -28,66 +31,8 @@ using namespace std;
  //@ <answer>
 
 struct Conferencia {
-    int id; //se corresponde con su posicion en el vector cID
     int64_t ini, fin, numSala;
 };
-//O(N) 
-int organizar(deque<Conferencia>& c, vector<Conferencia>& cId, unordered_map<int64_t, vector<Conferencia>>& salas, int N) {
-    int numSalas = 1; //Si hay al menos una conferencia debe haber una sala
-    //Guardar la sala con menor hora de finalizacion. Asi sabremos que si una nueva conferencia no entra en esta sala, hay que crear una nueva
-    int64_t salaMenorFin = 0; //Al comienzo la sala que antes tiene la finalizacion es la 0
-
-    //Primera conferencia se añade a la primera sala
-    Conferencia actual = c.front();
-    c.pop_front();
-    actual.numSala = 0;
-    salas[0].push_back(actual);
-
-    //Se añade en que sala esta en el vector de IDs
-    cId[actual.id].numSala = 0;
-
-    for (int i = 1; i < N; ++i) {
-        Conferencia nueva = c.front();
-        c.pop_front();
-
-        //Si la nueva conferencia se puede insertar tras la actual, se hace
-        if (nueva.ini >= actual.fin) {
-            nueva.numSala = actual.numSala;
-            salas[actual.numSala].push_back(nueva);
-            if (salas[salaMenorFin].back().fin > salas[actual.numSala].back().fin) {
-                salaMenorFin = actual.numSala;
-            }
-            actual = nueva;
-        }
-        //Si no se puede hacer lo anterior, se comprueba si se puede insertar en la sala de menor hora de finalizacion
-        else {
-
-            if (salas[salaMenorFin].back().fin <= nueva.ini) {
-                nueva.numSala = salaMenorFin;
-                salas[salaMenorFin].push_back(nueva);
-                if (salas[actual.numSala].back().fin < salas[salaMenorFin].back().fin) {
-                    salaMenorFin = actual.numSala; //Al haber insertado una conferencia en la sala con menor hora de finalizacion
-                    // esta deja de serlo asi que la nueva sala con menor hora de finalizacion pasa a ser la de la actual
-
-                }
-                actual = nueva; //Se actualiza la actual con la nueva
-            }
-            //Si no se ha podido colocar en la sala con menor hora de finalizacion, se crea una nueva sala 
-            //En este caso la sala con menor hora de finalizacion no cambia
-            else {
-                nueva.numSala = salas.size();
-                salas[salas.size()].push_back(nueva);
-                actual = nueva;
-                numSalas++;
-            }
-        }
-
-        //Se añade en que sala esta en el vector de IDs
-        cId[actual.id].numSala = actual.numSala;
-    }
-
-    return numSalas;
-}
 
 bool resuelveCaso() {
 
@@ -97,30 +42,55 @@ bool resuelveCaso() {
     if (N==0)
         return false;
 
-    deque<Conferencia> c(N);
-    vector<Conferencia> cId(N); //vector con el orden de entrada
+    vector<Conferencia> c(N); //vector conferencias
+    vector<int64_t> cNumSala(N); //vector con el numero de sala que corresponde a cada conferencia
 
     int64_t ini, fin; //[ini, fin)
     for (int i = 0; i < N; ++i) {
         cin >> ini >> fin;
-        c[i] = { i,ini, fin, -1 }; //Sala -1 indica que no esta aun organizada
-        cId[i] = { i,ini, fin, -1 };
+        c[i] = { ini, fin, i }; //Se guardan los indices de las conferencias segun el orden de entrada en su numero de sala
+        // ya que este solo se procesara una sola vez. De esta forma no hay que crear una variable extra dentro del struct
+        // Este indice sirve para posicionar la sala dentro del vector cNumSala segun el orden de entrada
     }
 
-    //O(NlogN) se ordena solamente la cola doble
+    //O(NlogN)
     std::sort(c.begin(), c.end(), [](Conferencia a, Conferencia b) {
-        return a.fin < b.fin || (a.fin == b.fin && a.ini<b.ini);
+        return a.ini < b.ini || (a.ini == b.ini && a.fin<b.fin);
         });
 
-    unordered_map<int64_t, vector<Conferencia>> salas;
 
-    int numSalas = organizar(c, cId, salas, N);
+    //pair = {fin, nº sala} --> se ordena de menor a mayor hora de finalizacion de una sala
+    // asi la primera es siempre la que acaba antes y sabemos que si no se puede cuadrar una conferencia en esa sala entonces 
+    // tampoco puede hacerse en las sucesivas
+    priority_queue<pair<int64_t, int64_t>, vector<pair<int64_t, int64_t>>, greater<pair<int64_t, int64_t>>> salas;
+
+    int64_t numSalas = 0; 
+    //O(NlogN)
+    for (const auto& conf : c) {
+
+        //Se comprueba que la cola de prioridad no este vacia y que la sala que acaba mas tarde pueda cuadrar la conferencia actual
+        if (!salas.empty() && salas.top().first <= conf.ini) {
+            auto s = salas.top();
+            salas.pop(); //O(logN)
+            cNumSala[conf.numSala] = s.second;
+            salas.push({ conf.fin, s.second }); //O(logN) --> Se vuelve a añadir a la cola con una nueva hora de finalizacion
+        }
+        //La cola esta vacia o no se puede posicionar la conferencia actual en la primera sala, que es la que antes tiene hueco
+        else {
+            numSalas++;
+            salas.push({ conf.fin, numSalas }); //Comienza numerando las salas desde 1
+            cNumSala[conf.numSala] = numSalas;
+        }
+    }
+
     cout << numSalas << '\n';
 
     for (int i = 0; i < N; ++i) {
-        cout << cId[i].numSala + 1 << ' ';
+        cout << cNumSala[i] << ' ';
     }
+
     cout << '\n';
+    
 
 
     return true;

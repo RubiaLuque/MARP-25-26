@@ -125,6 +125,9 @@
   <ItemGroup>
     <ClCompile Include="8.L-PlanificacionConferencias.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IndexPQ.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
