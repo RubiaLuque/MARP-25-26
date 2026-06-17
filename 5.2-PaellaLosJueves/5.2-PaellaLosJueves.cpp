@@ -29,34 +29,53 @@ class DFSDirigido {
 private:
     int orig, dest;
     vector<bool> visit;
-    int _tam;
+    Digrafo gInv;
+    vector<bool> visitInv;
 
-    int dfs(Digrafo const& g, int v) {
+    void dfs(Digrafo const& g, int v) {
         visit[v] = true;
-        int tam = 1;
         for (auto w : g.ady(v)) {
             
             if (!visit[w]) {
-                tam += dfs(g, w);
+                dfs(g, w);
             }
         }
     }
 
+    void dfsInv(Digrafo const& g, int v) {
+        visitInv[v] = true;
+        for (auto w : g.ady(v)) {
+            if (!visitInv[w])
+                dfsInv(g, w);
+        }
+    }
+
 public:
-    DFSDirigido(Digrafo const& g, int orig, int dest) : visit(g.V(), false), orig(orig), dest(dest) {
-        _tam = dfs(g, orig);
+    DFSDirigido(Digrafo const& g, int orig, int dest) : visit(g.V(), false), orig(orig), dest(dest), gInv(g.inverso()), visitInv(gInv.V(), false) {
+        //gInv = g.inverso(); //O(A+V)
+        //Se hace DFS desde el origen para saber si el destino es alcanzable
+        dfs(g, orig);
+        dfsInv(gInv, dest);
+    }
+
+    //O(V) 
+    //Si un vertice ha sido visitado tanto en el recorrido en el grafo original desde orig y en el recorrido en el grafo invertido
+    // desde dest, entonces se cumple que:
+    // - si hay camino dest -> v en grafo inverso ---> hay camino v -> dest en el grafo original
+    int solucion() const {
+        int total = 0;
+        for (int i = 0; i < gInv.V(); ++i) {
+            if (visit[i] && visitInv[i]) total++;
+        }
+
+        return total - 2; //inicio y destino no cuentan para la solucion
     }
 
     bool alcanzable(int v) const {
         return visit[v];
     }
 
-    int solucion() const {
-        if (!alcanzable(dest)) return -1;
-        else {
-            return _tam - 2; //Se resta dos puesto que destino y origen no cuentan segun el enunciado
-        }
-    }
+    
 };
 
 bool resuelveCaso() {
@@ -84,9 +103,11 @@ bool resuelveCaso() {
     for (int i = 0; i < Q; ++i) {
         cin >> orig >> dest;
         DFSDirigido dfs(dg, orig-1, dest-1); //O(V + A)
-        int sol = dfs.solucion();
-        if (sol == -1) cout << "IMPOSIBLE\n";
-        else cout << sol << '\n';
+        //Si el vertice de destino no es alcanzable desde origen, entonces la respuesta es imposible
+        if (!dfs.alcanzable(dest-1)) cout << "IMPOSIBLE\n";
+        else {
+            cout << dfs.solucion() << '\n';
+        }
     }
 
     cout << "---\n";
