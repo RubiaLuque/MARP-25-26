@@ -12,6 +12,6 @@
 | ✔️ | ✔️ | Grafos valorados no dirigidos y ARM |
 | ✔️ | ✔️ | Grafos valorados dirigidos y Caminos mínimos |
 | ✔️ | ✔️ | Algoritmos Voraces |
-| ✔️ | - | Programación Dinámica |
-| - | - | Ramificación, poda y árboles de juego |
+| ✔️ | ✔️ | Programación Dinámica |
+| - | 🟨 | Ramificación, poda y árboles de juego |
 
